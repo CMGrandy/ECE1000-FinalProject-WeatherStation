@@ -2,11 +2,18 @@ from machine import Pin, SoftI2C
 import ssd1306
 import time 
 import dht
+import bluetooth
+from ble_simple_peripheral import BLESimplePeripheral
+
 cur_time = time.localtime()
 
 filename = str(cur_time[0]) + "_" +str(cur_time[1]) + "_" + str(cur_time[2]) + "_" + str(abs(cur_time[3]-12)) + "_" + str(cur_time[4]) + "_" + str(cur_time[5])
 filename = "Weather_Station" + filename + ".txt"
 file = open(filename,"w")
+ble = bluetooth.BLE()
+
+sp = BLESimplePeripheral(ble)
+
 
 led1_pin = 18
 led2_pin = 19
@@ -77,6 +84,17 @@ while True:
     oled.text(hum_string, 45, 50)
     oled.show()
     saveData(temp, temp_f, hum)
+    
+    if sp.is_connected(): # Check if a BLE connection is established
+        # Read the value from the internal temperature sensor
+
+        # Transmit the temperature value over BLE
+
+        sendString = ("temperature(F): " + temp_f_string + " temperature(C): " + temp_string + " Humidity(%): " + hum_string)
+        sendString_encoded = sendString.encode()
+        sp.send(sendString_encoded)
+    
+    
     time.sleep(10)
 
   except OSError as e:
